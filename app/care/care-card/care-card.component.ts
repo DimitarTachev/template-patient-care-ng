@@ -5,7 +5,7 @@ import { Observable } from "rxjs/Rx";
 
 import { CareCardService } from "./shared/care-card.service";
 import { CarePlanActivity, CarePlanActivityType } from "./shared/care-plan-activity.model";
-import { CarePlanEvent, CarePlanEventsHolder } from "./shared/care-plan-event.model";
+import { CarePlanEvent } from "./shared/care-plan-event.model";
 
 @Component({
     selector: "CareCard",
@@ -15,10 +15,10 @@ import { CarePlanEvent, CarePlanEventsHolder } from "./shared/care-plan-event.mo
 export class CareCardComponent implements OnInit {
     isLoading: boolean;
 
-    private _physicalEvents: Array<CarePlanEventsHolder>;
-    private _otherEvents: Array<CarePlanEventsHolder>;
-    private _assessmentEvents: Array<CarePlanEventsHolder>;
-    private _medicationEvents: Array<CarePlanEventsHolder>;
+    private _physicalActivities: Array<CarePlanActivity>;
+    private _assessmentActivities: Array<CarePlanActivity>;
+    private _otherActivities: Array<CarePlanActivity>;
+    private _medicationActivities: Array<CarePlanActivity>;
 
     private _allActivities: Array<CarePlanActivity>;
     private _selectedDate: Date;
@@ -29,36 +29,37 @@ export class CareCardComponent implements OnInit {
     ) {
     }
 
-    get physicalEvents(): Array<CarePlanEventsHolder> {
-        return this._physicalEvents;
+    get physicalActivities(): Array<CarePlanActivity> {
+        return this._physicalActivities;
     }
 
-    get assessmentEvents(): Array<CarePlanEventsHolder> {
-        return this._assessmentEvents;
+    get assessmentActivities(): Array<CarePlanActivity> {
+        return this._assessmentActivities;
     }
 
-    get otherEvents(): Array<CarePlanEventsHolder> {
-        return this._otherEvents;
+    get otherActivities(): Array<CarePlanActivity> {
+        return this._otherActivities;
     }
 
-    get medicationEvents(): Array<CarePlanEventsHolder> {
-        return this._medicationEvents;
+    get medicationActivities(): Array<CarePlanActivity> {
+        return this._medicationActivities;
     }
 
     ngOnInit(): void {
         this.isLoading = true;
 
-        this._physicalEvents = new Array<CarePlanEventsHolder>();
-        this._assessmentEvents = new Array<CarePlanEventsHolder>();
-        this._otherEvents = new Array<CarePlanEventsHolder>();
-        this._medicationEvents = new Array<CarePlanEventsHolder>();
+        this._physicalActivities = new Array<CarePlanActivity>();
+        this._assessmentActivities = new Array<CarePlanActivity>();
+        this._otherActivities = new Array<CarePlanActivity>();
+        this._medicationActivities = new Array<CarePlanActivity>();
 
         this._careCardService.getAllActivities()
-            .then((activities: Array<any>) => {
+            .then((activities: Array<CarePlanActivity>) => {
                 this.isLoading = false;
                 this._allActivities = activities;
 
-                this.getEvents(this._allActivities, this._selectedDate);
+                console.dir(this._careCardService.events);
+                this.createActivitiesWithEvents(this._allActivities, this._selectedDate);
             });
     }
 
@@ -66,19 +67,19 @@ export class CareCardComponent implements OnInit {
         this._selectedDate = date;
 
         if (this._allActivities) {
-            this.getEvents(this._allActivities, this._selectedDate);
+            this.createActivitiesWithEvents(this._allActivities, this._selectedDate);
         }
     }
 
-    onActivityEventTap(eventHolder: CarePlanEventsHolder, event: CarePlanEvent) {
+    onActivityEventTap(activity: CarePlanActivity, event: CarePlanEvent) {
         event.value = event.value === 0 ? 1 : 0;
-        this._careCardService.upsertEvent(eventHolder);
+        this._careCardService.upsertEvent(event, activity.events.length);
     }
 
-    onActivityTap(eventHolder: CarePlanEventsHolder) {
+    onActivityTap(activity: CarePlanActivity) {
         this._routerExtensions.navigate([
             "care/activity-detail",
-            eventHolder.activity.title,
+            activity.title,
             this._selectedDate.toISOString()],
             {
                 animated: true,
@@ -90,46 +91,48 @@ export class CareCardComponent implements OnInit {
             });
     }
 
-    private getEvents(activities: Array<CarePlanActivity>, selectedDate: Date) {
-        this._physicalEvents = new Array<CarePlanEventsHolder>();
-        this._assessmentEvents = new Array<CarePlanEventsHolder>();
-        this._otherEvents = new Array<CarePlanEventsHolder>();
-        this._medicationEvents = new Array<CarePlanEventsHolder>();
+    private createActivitiesWithEvents(activities: Array<CarePlanActivity>, selectedDate: Date) {
+        this._physicalActivities = new Array<CarePlanActivity>();
+        this._assessmentActivities = new Array<CarePlanActivity>();
+        this._otherActivities = new Array<CarePlanActivity>();
+        this._medicationActivities = new Array<CarePlanActivity>();
 
-        activities.forEach((activity) => {
+        for (const activity of activities) {
             const day: number = selectedDate.getDay();
-            const occurrencesForDay: number = activity.schedule[day] || 0;
-            const eventHolder = new CarePlanEventsHolder(activity, selectedDate);
+            const occurrencesForDay: number = activity.schedule[day - 1] || 0;
+
+            activity.events = new Array<CarePlanEvent>();
 
             for (let index = 0; index < occurrencesForDay; index++) {
-                const event = new CarePlanEvent(activity, selectedDate);
-                eventHolder.events.push(event);
+                const event = new CarePlanEvent(activity, selectedDate, index);
+                activity.events.push(event);
             }
 
             if (activity.groupIdentifier === CarePlanActivityType.physical) {
-                this._physicalEvents.push(eventHolder);
-            } else if (activity.groupIdentifier === CarePlanActivityType.assesment) {
-                this._assessmentEvents.push(eventHolder);
+                this._physicalActivities.push(activity);
+            } else if (activity.groupIdentifier === CarePlanActivityType.assessment) {
+                this._assessmentActivities.push(activity);
             } else if (activity.groupIdentifier === CarePlanActivityType.medication) {
-                this._medicationEvents.push(eventHolder);
+                this._medicationActivities.push(activity);
             } else if (activity.groupIdentifier === CarePlanActivityType.other) {
-                this._otherEvents.push(eventHolder);
+                this._otherActivities.push(activity);
             }
-        });
+        }
 
-        this.mapEvents(this._physicalEvents, selectedDate);
-        this.mapEvents(this._assessmentEvents, selectedDate);
-        this.mapEvents(this._medicationEvents, selectedDate);
-        this.mapEvents(this._otherEvents, selectedDate);
+        this.mapEvents(this._physicalActivities, selectedDate);
+        this.mapEvents(this._assessmentActivities, selectedDate);
+        this.mapEvents(this._otherActivities, selectedDate);
+        this.mapEvents(this._medicationActivities, selectedDate);
     }
 
-    private mapEvents(eventsCollection: Array<CarePlanEventsHolder>, selectedDate: Date) {
-        eventsCollection.forEach((eventHolder) => {
-            // tslint:disable-next-line:max-line-length
-            const savedEventHolder = this._careCardService.findEventHolder(eventHolder.activity.title, selectedDate);
+    private mapEvents(activityCollection: Array<CarePlanActivity>, selectedDate: Date) {
+        activityCollection.forEach((activity) => {
+            const savedEvents = this._careCardService.findEvents(activity.title, selectedDate);
 
-            if (savedEventHolder) {
-                eventHolder.events = savedEventHolder.events;
+            if (savedEvents.length) {
+                for (const event of savedEvents) {
+                    activity.events[event.index] = event;
+                }
             }
         });
     }

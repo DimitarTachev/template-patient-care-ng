@@ -3,7 +3,7 @@ export class LoginForm {
     password: string;
 
     constructor() {
-        this.email = "";
-        this.password = "";
+        this.email = "a@a.com";
+        this.password = "admin";
     }
 }

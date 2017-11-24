@@ -4,21 +4,21 @@ import { Observable } from "rxjs/Rx";
 
 // tslint:disable-next-line:max-line-length
 import { CarePlanActivity, CarePlanActivityType } from "./care-plan-activity.model";
-import { CarePlanEvent, CarePlanEventsHolder } from "./care-plan-event.model";
+import { CarePlanEvent } from "./care-plan-event.model";
 
 @Injectable()
 export class CareCardService {
-    private _events: Array<CarePlanEventsHolder>;
+    private _events: Array<CarePlanEvent>;
     private _activities: Array<CarePlanActivity>;
 
     private _activityStore = Kinvey.DataStore.collection<any>("Activity");
 
     constructor() {
-        this._events = new Array<CarePlanEventsHolder>();
+        this._events = new Array<CarePlanEvent>();
         this._activities = Array<CarePlanActivity>();
     }
 
-    get events(): Array<CarePlanEventsHolder> {
+    get events(): Array<CarePlanEvent> {
         return this._events;
     }
 
@@ -30,8 +30,8 @@ export class CareCardService {
         return activity;
     }
 
-    findEventHolder(title: string, date: Date): CarePlanEventsHolder {
-        const event = this._events.find((currentEvent) => {
+    findEvents(title: string, date: Date): Array<CarePlanEvent> {
+        const event = this._events.filter((currentEvent) => {
             return currentEvent.date.toDateString() === date.toDateString() && currentEvent.activity.title === title;
         });
 
@@ -66,15 +66,17 @@ export class CareCardService {
         }
     }
 
-    upsertEvent(eventHolder: CarePlanEventsHolder) {
-        let eventToUpdate = this.findEventHolder(eventHolder.activity.title, eventHolder.date);
+    upsertEvent(event: CarePlanEvent, eventsCount: number) {
+        const registeredEvents = this.findEvents(event.activity.title, event.date);
 
-        if (eventToUpdate) {
-            console.log("UPDATE");
-            eventToUpdate = eventHolder;
+        if (registeredEvents.length === eventsCount) {
+            let eventToUpdate = registeredEvents.find((currentEvent) => {
+                return currentEvent.index === event.index;
+            });
+
+            eventToUpdate = event;
         } else {
-            console.log("PUSH");
-            this.events.push(eventHolder);
+            this._events.push(event);
         }
     }
 
