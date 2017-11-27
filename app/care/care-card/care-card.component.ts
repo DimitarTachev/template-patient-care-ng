@@ -22,6 +22,7 @@ export class CareCardComponent implements OnInit {
 
     private _allActivities: Array<CarePlanActivity>;
     private _selectedDate: Date;
+    private _selectedDateValue: number;
 
     constructor(
         private _routerExtensions: RouterExtensions,
@@ -45,6 +46,10 @@ export class CareCardComponent implements OnInit {
         return this._medicationActivities;
     }
 
+    get selectedDateValue(): number {
+        return this._selectedDateValue;
+    }
+
     ngOnInit(): void {
         this.isLoading = true;
 
@@ -58,8 +63,8 @@ export class CareCardComponent implements OnInit {
                 this.isLoading = false;
                 this._allActivities = activities;
 
-                console.dir(this._careCardService.events);
                 this.createActivitiesWithEvents(this._allActivities, this._selectedDate);
+                this._selectedDateValue = this._careCardService.getOverviewValue(this._selectedDate);
             });
     }
 
@@ -68,12 +73,14 @@ export class CareCardComponent implements OnInit {
 
         if (this._allActivities) {
             this.createActivitiesWithEvents(this._allActivities, this._selectedDate);
+            this._selectedDateValue = this._careCardService.getOverviewValue(this._selectedDate);
         }
     }
 
     onActivityEventTap(activity: CarePlanActivity, event: CarePlanEvent) {
         event.value = event.value === 0 ? 1 : 0;
         this._careCardService.upsertEvent(event, activity.events.length);
+        this._selectedDateValue = this._careCardService.getOverviewValue(this._selectedDate);
     }
 
     onActivityTap(activity: CarePlanActivity) {
@@ -98,14 +105,10 @@ export class CareCardComponent implements OnInit {
         this._medicationActivities = new Array<CarePlanActivity>();
 
         for (const activity of activities) {
-            const day: number = selectedDate.getDay();
-            const occurrencesForDay: number = activity.schedule[day - 1] || 0;
-
             activity.events = new Array<CarePlanEvent>();
 
-            for (let index = 0; index < occurrencesForDay; index++) {
-                const event = new CarePlanEvent(activity, selectedDate, index);
-                activity.events.push(event);
+            if (activity.type !== 2) {
+                activity.events = this.getActivityEvents(activity, selectedDate);
             }
 
             if (activity.groupIdentifier === CarePlanActivityType.physical) {
@@ -129,11 +132,25 @@ export class CareCardComponent implements OnInit {
         activityCollection.forEach((activity) => {
             const savedEvents = this._careCardService.findEvents(activity.title, selectedDate);
 
-            if (savedEvents.length) {
+            if (savedEvents.length && activity.events.length) {
                 for (const event of savedEvents) {
                     activity.events[event.index] = event;
                 }
             }
         });
+    }
+
+    private getActivityEvents(activity: CarePlanActivity, selectedDate: Date): Array<CarePlanEvent> {
+        const events = new Array<CarePlanEvent>();
+
+        const day: number = selectedDate.getDay();
+        const occurrencesForDay: number = activity.schedule[day] || 0;
+
+        for (let index = 0; index < occurrencesForDay; index++) {
+            const event = new CarePlanEvent(activity, selectedDate, index);
+            events.push(event);
+        }
+
+        return events;
     }
 }

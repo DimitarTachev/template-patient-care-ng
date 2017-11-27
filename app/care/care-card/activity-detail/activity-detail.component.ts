@@ -53,7 +53,7 @@ export class ActivityDetailComponent implements OnInit {
             if (this.event) {
                 this.event.value = this.value;
             } else {
-                this.event = new CarePlanEvent(this._activity, this._selectedDate, 1);
+                this.event = new CarePlanEvent(this._activity, this._selectedDate, 0);
             }
 
             this.event.value = this.value;

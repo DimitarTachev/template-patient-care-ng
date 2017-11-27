@@ -80,62 +80,22 @@ export class CareCardService {
         }
     }
 
-    getWeeklyOverview(selectedDate: Date): Array<any> {
-        const sunday = this.getLastSunday(selectedDate);
-        const monday = new Date(sunday);
-        monday.setDate(sunday.getDate() + 1);
+    getOverviewValue(date: Date): number {
+        const activities = this._activities;
+        let totalEventsCount: number = 0;
+        let savedEventsCount: number = 0;
 
-        const tuesday = new Date(sunday);
-        tuesday.setDate(sunday.getDate() + 2);
+        activities.forEach((activity) => {
+            const savedEvents = this.findEvents(activity.title, date);
+            totalEventsCount += activity.events.length;
 
-        const wednesday = new Date(sunday);
-        wednesday.setDate(sunday.getDate() + 3);
+            savedEvents.forEach((savedEvent) => {
+                if (savedEvent.value !== 0) {
+                    savedEventsCount++;
+                }
+            });
+        });
 
-        const thursday = new Date(sunday);
-        thursday.setDate(sunday.getDate() + 4);
-
-        const friday = new Date(sunday);
-        friday.setDate(sunday.getDate() + 5);
-
-        const saturday = new Date(sunday);
-        saturday.setDate(sunday.getDate() + 6);
-
-        return [
-            {
-                date: sunday,
-                value: 10
-            },
-            {
-                date: monday,
-                value: 20
-            },
-            {
-                date: tuesday,
-                value: 70
-            },
-            {
-                date: wednesday,
-                value: 100
-            },
-            {
-                date: thursday,
-                value: 100
-            },
-            {
-                date: friday,
-                value: 0
-            },
-            {
-                date: saturday,
-                value: 0
-            }
-        ];
-    }
-
-    private getLastSunday(date: Date): Date {
-        const result = new Date(date);
-        result.setDate(date.getDate() - date.getDay());
-
-        return result;
+        return (savedEventsCount / totalEventsCount) * 100;
     }
 }
