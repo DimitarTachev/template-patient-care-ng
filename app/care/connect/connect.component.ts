@@ -1,8 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { RouterExtensions } from "nativescript-angular/router";
 
-import { ConnectItem } from "./shared/connect-item.model";
-import { ConnectService } from "./shared/connect.service";
+import { ConnectItem } from "../core/connect-item.model";
+import { ConnectService } from "../core/connect.service";
 
 @Component({
     selector: "Connect",

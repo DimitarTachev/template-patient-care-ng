@@ -2,9 +2,9 @@ import { Component, OnInit } from "@angular/core";
 import { PageRoute, RouterExtensions } from "nativescript-angular/router";
 import "rxjs/add/operator/switchMap";
 
-import { CareCardService } from "../shared/care-card.service";
-import { CarePlanActivity, CarePlanActivityType } from "../shared/care-plan-activity.model";
-import { CarePlanEvent } from "../shared/care-plan-event.model";
+import { CareCardService } from "../../core/care-card.service";
+import { CarePlanActivity } from "../../core/care-plan-activity.model";
+import { CarePlanEvent } from "../../core/care-plan-event.model";
 
 @Component({
     selector: "ActivityDetails",

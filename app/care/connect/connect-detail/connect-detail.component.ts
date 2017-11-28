@@ -4,8 +4,8 @@ import * as email from "nativescript-email";
 import * as phoneModule from "nativescript-phone";
 import "rxjs/add/operator/switchMap";
 
-import { ConnectItem } from "../shared/connect-item.model";
-import { ConnectService } from "../shared/connect.service";
+import { ConnectItem } from "../../core/connect-item.model";
+import { ConnectService } from "../../core/connect.service";
 
 @Component({
     selector: "ConnectDetail",

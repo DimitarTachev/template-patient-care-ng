@@ -3,11 +3,11 @@
 </ActionBar>
 
 <TabView class="selectedTab" (selectedIndexChanged)="onSelectedIndexChanged($event)">
-    <StackLayout *tabItem="{title: 'Care Contents', iconSource: getIconSource('home')}">
+    <StackLayout *tabItem="{title: 'Care Card', iconSource: getIconSource('home')}">
         <CareCard></CareCard>
     </StackLayout>
-    <StackLayout *tabItem="{title: 'Insights', iconSource: getIconSource('insights')}">
-        <Insights></Insights>
+    <StackLayout *tabItem="{title: 'Symptom Tracker', iconSource: getIconSource('tracker')}">
+        <SymptomTracker></SymptomTracker>
     </StackLayout>
     <StackLayout *tabItem="{title: 'Connect', iconSource: getIconSource('search')}">
         <Connect></Connect>

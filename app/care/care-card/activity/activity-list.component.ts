@@ -2,9 +2,9 @@ import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { RouterExtensions } from "nativescript-angular/router";
 import { Subscription } from "rxjs/Subscription";
 
-import { CareCardService } from "../shared/care-card.service";
-import { CarePlanActivity } from "../shared/care-plan-activity.model";
-import { CarePlanEvent } from "../shared/care-plan-event.model";
+import { CareCardService } from "../../core/care-card.service";
+import { CarePlanActivity } from "../../core/care-plan-activity.model";
+import { CarePlanEvent } from "../../core/care-plan-event.model";
 
 @Component({
     selector: "ActivityList",
